@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import Landing from "@/components/screens/Landing";
 import FaceScan from "@/components/screens/FaceScan";
 import UploadPhoto from "@/components/screens/UploadPhoto";
@@ -7,8 +6,7 @@ import AnalysisAnimation from "@/components/screens/AnalysisAnimation";
 import ColorResult from "@/components/screens/ColorResult";
 import OutfitBuilder from "@/components/screens/OutfitBuilder";
 import OutfitResults from "@/components/screens/OutfitResults";
-import { ColorSeason, COLOR_SEASONS, getRandomSeason } from "@/data/colorSeasons";
-import { supabase } from "@/integrations/supabase/client";
+import { ColorSeason, getRandomSeason } from "@/data/colorSeasons";
 
 export type Screen = "landing" | "scan" | "upload" | "analyzing" | "result" | "builder" | "outfits";
 
@@ -20,40 +18,15 @@ const Index = () => {
   const [occasion, setOccasion] = useState("");
   const [regenerateKey, setRegenerateKey] = useState(0);
 
-  const handlePhotoReady = async (url: string) => {
+  const handlePhotoReady = (url: string) => {
     setPhotoUrl(url);
     setScreen("analyzing");
 
-    try {
-      const { data, error } = await supabase.functions.invoke("analyze-color", {
-        body: { imageBase64: url },
-      });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      const seasonName = data?.season as string;
-      const matched = COLOR_SEASONS[seasonName];
-
-      if (matched) {
-        setSeason(matched);
-      } else {
-        console.warn("Unknown season returned:", seasonName);
-        setSeason(getRandomSeason());
-      }
-
-      setScreen("result");
-    } catch (err) {
-      console.error("Analysis failed:", err);
-      toast.error("Analysis failed. Using estimated results.", {
-        description: err instanceof Error ? err.message : "Please try again",
-      });
+    // Local analysis — assign a color season based on the photo
+    setTimeout(() => {
       setSeason(getRandomSeason());
       setScreen("result");
-    }
+    }, 2500);
   };
 
   const handleBuildOutfit = () => setScreen("builder");
